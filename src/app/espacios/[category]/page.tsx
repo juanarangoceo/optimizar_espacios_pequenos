@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { client } from '@/lib/sanity/client'
 import Link from 'next/link'
 import { Breadcrumb } from '@/components/breadcrumb'
+import { FormattedDate } from '@/components/formatted-date'
 
 export const revalidate = 3600 // ISR: Revalidate every hour
 
@@ -103,11 +104,7 @@ export default async function CategoryPage({ params }: Props) {
                       {post.excerpt || 'Sin descripción disponible'}
                     </p>
                     <time className="text-xs text-muted-foreground mt-2 block">
-                      {new Date(post.publishedAt).toLocaleDateString('es-ES', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
+                      <FormattedDate dateString={post.publishedAt} />
                     </time>
                   </div>
                 </article>

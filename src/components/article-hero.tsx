@@ -8,7 +8,7 @@ interface ArticleHeroProps {
 }
 
 export function ArticleHero({ image, title }: ArticleHeroProps) {
-  const imageUrl = image ? urlFor(image).width(1200).height(800).url() : null
+  const imageUrl = image?.asset ? urlFor(image).width(1200).height(800).url() : null
 
   return (
     <header className="relative w-full h-[50vh] md:h-[60vh] overflow-hidden bg-muted">

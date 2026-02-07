@@ -42,3 +42,15 @@ export async function generateBlogPost(keyword: string, category: string) {
     throw new Error("Invalid JSON response from AI")
   }
 }
+
+export async function generateEmbedding(text: string): Promise<number[]> {
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+  if (!apiKey) throw new Error("Missing Gemini API Key");
+
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ model: "text-embedding-004" });
+
+  const result = await model.embedContent(text);
+  const embedding = result.embedding.values;
+  return embedding;
+}

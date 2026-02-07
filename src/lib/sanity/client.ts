@@ -8,9 +8,9 @@ export const client = createClient({
   useCdn: false, // Set to false for ISR/Revalidation
 })
 
-import imageUrlBuilder from '@sanity/image-url'
+import { createImageUrlBuilder } from '@sanity/image-url'
 
-const builder = imageUrlBuilder(client)
+const builder = createImageUrlBuilder(client)
 
 export function urlFor(source: any) {
   return builder.image(source)

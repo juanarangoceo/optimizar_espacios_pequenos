@@ -19,12 +19,12 @@ import {
 } from "lucide-react"
 
 const categories = [
-  { label: "Sistemas de Organizacion", icon: ChefHat, href: "/espacios/organizacion" },
-  { label: "Curaduria de Espacios", icon: MapPin, href: "/espacios/curaduria" },
-  { label: "Mobiliario Inteligente", icon: Armchair, href: "/espacios/mobiliario" },
-  { label: "Biohacking del Hogar", icon: Sun, href: "/espacios/biohacking" },
+  { label: "Sistemas de Organizacion", icon: ChefHat, href: "/espacios/sistemas-de-organizacion" },
+  { label: "Curaduria de Espacios", icon: MapPin, href: "/espacios/curaduria-de-espacios" },
+  { label: "Mobiliario Inteligente", icon: Armchair, href: "/espacios/mobiliario-inteligente" },
+  { label: "Biohacking del Hogar", icon: Sun, href: "/espacios/biohacking-del-hogar" },
   { label: "Hacks", icon: Zap, href: "/espacios/hacks" },
-  { label: "Proyectos DIY", icon: Wrench, href: "/espacios/diy" },
+  { label: "Proyectos DIY", icon: Wrench, href: "/espacios/proyectos-diy" },
 ]
 
 export function Header() {

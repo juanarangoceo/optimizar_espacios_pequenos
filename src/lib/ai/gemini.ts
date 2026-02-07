@@ -1,19 +1,15 @@
-
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { GoogleGenAI } from "@google/genai";
 import { getPromptForCategory } from '@/lib/ai/prompts'
 
-// Remove top-level await/check for build safety
-// export const model = ... // Moved inside function to avoid build-time error
-
 export async function generateBlogPost(keyword: string, category: string) {
-  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GOOGLE_API_KEY
   
   if (!apiKey) {
-    throw new Error('Missing GEMINI_API_KEY or GOOGLE_GENERATIVE_AI_API_KEY environment variable')
+    throw new Error('Missing GEMINI_API_KEY, GOOGLE_GENERATIVE_AI_API_KEY, or GOOGLE_API_KEY environment variable')
   }
 
-  const genAI = new GoogleGenerativeAI(apiKey)
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+  // Inicializar el cliente con la API Key
+  const ai = new GoogleGenAI({ apiKey });
 
   const prompt = getPromptForCategory(category, keyword) + `
     
@@ -28,29 +24,51 @@ export async function generateBlogPost(keyword: string, category: string) {
     NO incluyas bloques de código (\`\`\`json). Devuelve SOLO el JSON raw.
   `
 
-  const result = await model.generateContent(prompt)
-  const response = await result.response
-  const text = response.text()
-  
-  // Basic cleanup to ensure JSON parsing if the model wraps it in code blocks
-  const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim()
-  
   try {
+    // Ejecutar la generación con Gemini 3 Flash
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json"
+      }
+    });
+
+    // text es un getter, no un método
+    const text = response.text;
+    
+    // Basic cleanup
+    const cleanText = text ? text.replace(/```json/g, '').replace(/```/g, '').trim() : "{}"
+    
     return JSON.parse(cleanText)
   } catch (e) {
-    console.error("Failed to parse JSON from Gemini:", text)
-    throw new Error("Invalid JSON response from AI")
+    console.error("Failed to generate content with Gemini 3 Flash:", e)
+    throw new Error("AI Generation Failed: " + (e as Error).message)
   }
 }
 
 export async function generateEmbedding(text: string): Promise<number[]> {
-  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) throw new Error("Missing Gemini API Key");
 
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: "text-embedding-004" });
+  const ai = new GoogleGenAI({ apiKey });
 
-  const result = await model.embedContent(text);
-  const embedding = result.embedding.values;
-  return embedding;
+  try {
+    // Para embeddings, usamos el modelo de embeddings
+    const response = await ai.models.embedContent({
+      model: "text-embedding-004",
+      contents: text
+    });
+
+    // embeddings es un array, tomamos el primer elemento
+    if (response.embeddings && response.embeddings.length > 0 && response.embeddings[0].values) {
+        return response.embeddings[0].values;
+    }
+    
+    throw new Error("Invalid embedding response structure");
+
+  } catch (e) {
+      console.error("Embedding generation failed:", e);
+      throw e;
+  }
 }

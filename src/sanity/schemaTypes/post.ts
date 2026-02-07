@@ -1,11 +1,21 @@
 
 import {defineField, defineType} from 'sanity'
+import {GenerateBlogPost} from '../components/GenerateBlogPost'
 
 export default defineType({
   name: 'post',
   title: 'Post',
   type: 'document',
   fields: [
+    defineField({
+      name: 'aiGenerator',
+      title: '✨ AI Generator',
+      type: 'string',
+      components: {
+        input: GenerateBlogPost
+      },
+      description: 'Usa esta herramienta para generar el contenido del post automáticamente.'
+    }),
     defineField({
       name: 'title',
       title: 'Title',

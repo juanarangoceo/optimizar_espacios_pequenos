@@ -1,5 +1,6 @@
 
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { getPromptForCategory } from '@/lib/ai/prompts'
 
 // Remove top-level await/check for build safety
 // export const model = ... // Moved inside function to avoid build-time error
@@ -14,19 +15,17 @@ export async function generateBlogPost(keyword: string, category: string) {
   const genAI = new GoogleGenerativeAI(apiKey)
   const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
-  const prompt = `
-    Act as an expert interior designer and professional automation blogger.
-    Write a comprehensive, engaging, and SEO-optimized blog post about "${keyword}" in the category "${category}".
+  const prompt = getPromptForCategory(category, keyword) + `
     
-    Structure the response in JSON format with the following fields:
-    - title: Catchy, SEO-friendly title.
-    - slug: URL-friendly slug based on the title.
-    - description: A short meta description (150-160 characters).
-    - body: The full blog post content in Markdown format. Use H2, H3, bullet points, and bold text for readability.
-    - tags: An array of 5 relevant tags.
+    Formato de respuesta JSON requerido (MANTÉN ESTE FORMATO EXACTO):
+    {
+      "title": "Título SEO Optimizado (Max 60 caracteres)",
+      "slug": "titulo-seo-optimizado-url-friendly",
+      "description": "Meta descripción atractiva (150-160 caracteres)",
+      "body": "Contenido del artículo en Markdown. Usa # para título (aunque no se usará), ## para secciones, ### para subsecciones. Incluye listas y negritas."
+    }
     
-    Ensure the tone is helpful, inspiring, and practical for people with small spaces.
-    RETURN ONLY JSON. NO MARKDOWN BLOCK.
+    NO incluyas bloques de código (\`\`\`json). Devuelve SOLO el JSON raw.
   `
 
   const result = await model.generateContent(prompt)

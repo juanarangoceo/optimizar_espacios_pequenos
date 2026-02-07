@@ -10,6 +10,9 @@
   },
   "dependencies": {
     "@google/genai": "^1.40.0",
+    "@google/generative-ai": "^0.24.1",
+    "@sanity/image-url": "^2.0.3",
+    "@sanity/vision": "^5.8.1",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.95.3",
     "class-variance-authority": "^0.7.1",
@@ -21,6 +24,7 @@
     "radix-ui": "^1.4.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "sanity": "^5.8.1",
     "server-only": "^0.0.1",
     "tailwind-merge": "^3.4.0",
     "zod": "^4.3.6"

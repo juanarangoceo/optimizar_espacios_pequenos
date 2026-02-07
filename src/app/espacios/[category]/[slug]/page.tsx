@@ -2,8 +2,11 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { client } from '@/lib/sanity/client'
-import { PortableText } from 'next-sanity'
-import Image from 'next/image'
+import { ArticleHero } from '@/components/article-hero'
+import { ArticleContent } from '@/components/article-content'
+import { ArticleNewsletter } from '@/components/article-newsletter'
+import { ProductCarousel } from '@/components/product-carousel'
+import { Breadcrumb } from '@/components/breadcrumb'
 
 export const revalidate = 3600 // ISR: Revalidate every hour
 
@@ -33,8 +36,8 @@ async function getPost(slug: string) {
       body,
       mainImage,
       publishedAt,
-      "author": author->name,
-      "categories": categories[]->title
+      author->{name, image, bio},
+      categories[]->{title}
     }`,
     { slug }
   )
@@ -57,21 +60,30 @@ export default async function BlogPostPage({ params }: Props) {
 
   // 3. Render
   return (
-    <article className="container mx-auto px-4 py-8 max-w-3xl">
-      <header className="mb-8">
-        <h1 className="text-4xl font-bold mb-4 text-foreground">{post.title}</h1>
-        <div className="flex items-center text-muted-foreground gap-4">
-            <span>By {post.author}</span>
-            <time>{new Date(post.publishedAt).toLocaleDateString()}</time>
-            <span className="capitalize badge">{category}</span>
+    <article className="min-h-screen bg-background text-foreground pb-20">
+      {/* Hero with Main Image */}
+      <ArticleHero image={post.mainImage} title={post.title} />
+
+      <div className="container mx-auto px-4 max-w-4xl -mt-20 relative z-10 bg-background rounded-t-3xl pt-10 md:pt-14 shadow-lg border border-border/50">
+        
+        {/* Breadcrumb */}
+        <div className="mb-8">
+           <Breadcrumb items={[
+             { label: 'Espacios', href: '/' }, // Or /espacios if exists
+             { label: categoryData.title, href: `/espacios/${category}` },
+             { label: 'Artículo' }
+           ]} />
         </div>
-      </header>
-      
-      {/* Basic Image Rendering - to be optimized in Phase 6 */}
-      {/* We need a urlBuilder for Sanity images usually, but let's assume raw data for now or use a helper later */}
-      
-      <div className="prose dark:prose-invert max-w-none">
-        <PortableText value={post.body} />
+
+        {/* Main Content (Title, Author, Body) */}
+        <ArticleContent post={post} />
+
+        {/* Newsletter & Products */}
+        <div className="max-w-2xl mx-auto space-y-16 pb-12">
+            <ArticleNewsletter />
+            <ProductCarousel />
+        </div>
+
       </div>
     </article>
   )

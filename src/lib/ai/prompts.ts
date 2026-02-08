@@ -12,6 +12,18 @@ export const CATEGORY_PROMPTS: Record<string, string> = {
     - Casos de uso ideales (studio, apartamento pequeño).
     - Conclusión.
   `,
+  'Sistemas de Organización': `
+    Eres un consultor profesional de organización (estilo Marie Kondo pero enfocado en eficiencia arquitectónica).
+    Escribe un artículo sobre: "{{TOPIC}}".
+    Enfoque: Aprovechamiento vertical, almacenamiento oculto, orden visual, psicología del espacio.
+    Tono: Práctico, motivador, ordenado.
+    Estructura:
+    - Introducción: El caos vs. el orden.
+    - Estrategia de organización (paso a paso).
+    - Herramientas/productos recomendados (genéricos).
+    - Consejos de mantenimiento.
+    - Conclusión.
+  `,
   'Sistemas de Organizacion': `
     Eres un consultor profesional de organización (estilo Marie Kondo pero enfocado en eficiencia arquitectónica).
     Escribe un artículo sobre: "{{TOPIC}}".
@@ -23,6 +35,12 @@ export const CATEGORY_PROMPTS: Record<string, string> = {
     - Herramientas/productos recomendados (genéricos).
     - Consejos de mantenimiento.
     - Conclusión.
+  `,
+  'Curaduría de Espacios': `
+    Eres un crítico de diseño y arquitecto de interiores de alto nivel.
+    Escribe una reseña o análisis sobre: "{{TOPIC}}".
+    Enfoque: Estética, flujo de movimiento, iluminación, selección de materiales, "vibe" del espacio.
+    Tono: Sofisticado, artístico, descriptivo.
   `,
   'Curaduria de Espacios': `
     Eres un crítico de diseño y arquitecto de interiores de alto nivel.

@@ -1,33 +1,45 @@
 
 'use client'
-import {useState, useCallback} from 'react'
+import {useState, useCallback, useEffect} from 'react'
 import {Stack, Button, Card, Text, TextArea, Flex, Select, Label, TextInput, Box, ToastProvider, useToast} from '@sanity/ui'
 import {SparklesIcon} from '@sanity/icons'
 import {useClient, useFormValue} from 'sanity'
 import {set, unset} from 'sanity'
 import type {StringInputProps, PatchEvent} from 'sanity'
+import { v4 as uuidv4 } from 'uuid'
 
-const CATEGORIES = [
-  {title: 'Mobiliario Inteligente', value: 'Mobiliario Inteligente'},
-  {title: 'Sistemas de Organizacion', value: 'Sistemas de Organizacion'},
-  {title: 'Curaduria de Espacios', value: 'Curaduria de Espacios'},
-  {title: 'Biohacking del Hogar', value: 'Biohacking del Hogar'},
-  {title: 'Hacks', value: 'Hacks'},
-  {title: 'Proyectos DIY', value: 'Proyectos DIY'},
-  {title: 'General', value: 'General'},
+// Default categories as fallback
+const DEFAULT_CATEGORIES = [
+  {title: 'General', _id: 'general'},
 ]
 
 export function GenerateBlogPost(props: StringInputProps) {
   const {onChange, value} = props
   const [topic, setTopic] = useState(value || '')
-  const [category, setCategory] = useState(CATEGORIES[0].value)
+  // Store the full category object or ID. We'll store ID and find title.
+  const [selectedCategoryId, setSelectedCategoryId] = useState('')
+  const [categories, setCategories] = useState<{title: string, _id: string}[]>([])
   const [isLoading, setIsLoading] = useState(false)
   
   const client = useClient({apiVersion: '2024-01-01'})
   const toast = useToast()
   
-  // Get document ID to patch it directly if needed, or we use onChange for the field
   const docId = useFormValue(['_id']) as string
+
+  // Fetch categories on mount
+  useEffect(() => {
+    client.fetch(`*[_type == "category"]{_id, title}|order(title asc)`)
+      .then((data) => {
+        setCategories(data)
+        if (data.length > 0) {
+            setSelectedCategoryId(data[0]._id)
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch categories:", err)
+        setCategories(DEFAULT_CATEGORIES)
+      })
+  }, [client])
 
   const handleGenerate = useCallback(async () => {
     if (!topic) {
@@ -37,6 +49,10 @@ export function GenerateBlogPost(props: StringInputProps) {
 
     setIsLoading(true)
     
+    // Find selected category title for the prompt
+    const selectedCategoryObj = categories.find(c => c._id === selectedCategoryId)
+    const categoryTitle = selectedCategoryObj ? selectedCategoryObj.title : 'General'
+
     try {
       // Call our Next.js API
       const response = await fetch('/api/generate', {
@@ -44,7 +60,7 @@ export function GenerateBlogPost(props: StringInputProps) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({topic, category}),
+        body: JSON.stringify({topic, category: categoryTitle}),
       })
 
       const data = await response.json()
@@ -52,65 +68,51 @@ export function GenerateBlogPost(props: StringInputProps) {
       if (!response.ok) {
         throw new Error(data.error || 'Failed to generate')
       }
-
-      // We successfully generated content.
-      // Now we need to update the document.
-      // If the document doesn't exist yet (new draft), we create it.
-      // If it exists, we patch it.
       
       const {title, slug, body, publishedAt} = data
 
-
-
       // Improved Logic: Use a transaction to ensure validity
-      // This handles both new drafts (where ID might not exist on server yet)
-      // and existing documents.
       if (docId) {
         const transaction = client.transaction()
         
-        // Ensure the document exists before patching
-        // This solves the "Mutation failed: Document not found" error
         transaction.createIfNotExists({_type: 'post', _id: docId})
         
-        transaction.patch(docId, p => p.set({
+        const patchData: any = {
             title,
             body,
             slug: {current: slug},
             publishedAt: publishedAt || new Date().toISOString(),
             aiGenerator: 'v2-automated',
-        }))
+        }
+
+        // Add category reference if we have a valid ID
+        if (selectedCategoryId && selectedCategoryId !== 'general') {
+            patchData.categories = [{
+                _type: 'reference',
+                _ref: selectedCategoryId,
+                _key: uuidv4() // Generate a random key for the array item
+            }]
+        }
+        
+        transaction.patch(docId, p => p.set(patchData))
 
         await transaction.commit()
-        console.log('Updated document:', docId)
-      } else {
-        // Fallback if no docId is found (unlikely in Studio)
-        const newDoc = await client.create({
-          _type: 'post',
-          title,
-          body,
-          slug: {current: slug},
-          publishedAt: publishedAt || new Date().toISOString(),
-          aiGenerator: 'v2-automated',
-        })
-        console.log('Created new document (fallback):', newDoc._id)
+        console.log('Updated document with category:', docId, categoryTitle)
       }
 
       toast.push({
         status: 'success', 
         title: 'Blog Post Generado!',
-        description: 'Se han actualizado los campos Título, Slug y Contenido.'
+        description: `Contenido creado para categoría: ${categoryTitle}`
       })
       
-      // Update the current field (Topic) to reflect what was used
-      // onChange(PatchEvent.from(set(topic) as any)) 
-
     } catch (err: any) {
       console.error(err)
       toast.push({status: 'error', title: 'Error', description: err.message})
     } finally {
       setIsLoading(false)
     }
-  }, [topic, category, client, docId, toast])
+  }, [topic, selectedCategoryId, categories, client, docId, toast])
 
   return (
     <Card padding={4} radius={2} shadow={1} tone="primary">
@@ -124,11 +126,7 @@ export function GenerateBlogPost(props: StringInputProps) {
             <Label>Tema del Artículo</Label>
             <TextArea 
                 value={topic} 
-                onChange={(e) => {
-                    setTopic(e.currentTarget.value)
-                    // Optional: sync with actual field value if we want to save the topic
-                    // onChange(PatchEvent.from(set(e.currentTarget.value) as any))
-                }}
+                onChange={(e) => setTopic(e.currentTarget.value)}
                 rows={2}
                 placeholder="Ej: Mesas extensibles para cenas de 6 personas..." 
             />
@@ -137,11 +135,12 @@ export function GenerateBlogPost(props: StringInputProps) {
         <Stack space={3}>
             <Label>Categoría / Contexto</Label>
             <Select 
-                value={category} 
-                onChange={(e) => setCategory(e.currentTarget.value)}
+                value={selectedCategoryId} 
+                onChange={(e) => setSelectedCategoryId(e.currentTarget.value)}
+                disabled={categories.length === 0}
             >
-                {CATEGORIES.map(c => (
-                    <option key={c.value} value={c.value}>{c.title}</option>
+                {categories.map(c => (
+                    <option key={c._id} value={c._id}>{c.title}</option>
                 ))}
             </Select>
         </Stack>

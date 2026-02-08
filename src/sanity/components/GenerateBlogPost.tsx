@@ -55,21 +55,37 @@ export function GenerateBlogPost(props: StringInputProps) {
 
       // We successfully generated content.
       // Now we need to update the document.
-      // We can use the Sanity Client to patch the document by ID.
-      // This allows updating title, body, slug, etc. at once.
+      // If the document doesn't exist yet (new draft), we create it.
+      // If it exists, we patch it.
       
       const {title, slug, body, publishedAt} = data
 
-      await client
-        .patch(docId)
-        .set({
+      // Check if document exists (has a valid _id that's not a draft placeholder)
+      if (docId && !docId.startsWith('drafts.')) {
+        // Document exists, update it
+        await client
+          .patch(docId)
+          .set({
+            title,
+            body,
+            slug: {current: slug},
+            publishedAt: publishedAt || new Date().toISOString(),
+          })
+          .commit()
+      } else {
+        // Document doesn't exist yet, create it
+        const newDoc = await client.create({
+          _type: 'post',
           title,
           body,
           slug: {current: slug},
           publishedAt: publishedAt || new Date().toISOString(),
-          // We could also set the category reference if we looked it up
+          aiGenerator: 'v2-automated',
         })
-        .commit()
+        
+        // Optionally, you could redirect to the new document
+        console.log('Created new document:', newDoc._id)
+      }
 
       toast.push({
         status: 'success', 

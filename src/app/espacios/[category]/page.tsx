@@ -8,7 +8,7 @@ import { FormattedDate } from '@/components/formatted-date'
 import { ChevronLeft } from 'lucide-react'
 import { urlFor } from '@/lib/sanity/client'
 
-export const revalidate = 3600 // ISR: Revalidate every hour
+export const revalidate = 60 // ISR: Revalidate every minute
 
 interface Props {
   params: Promise<{

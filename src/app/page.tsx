@@ -1,4 +1,3 @@
-import { Header } from "@/components/header"
 import { HeroSection } from "@/components/hero-section"
 import { OrganizationSection } from "@/components/organization-section"
 import { CuraduriaSection } from "@/components/curaduria-section"
@@ -11,6 +10,8 @@ import { Divider } from "@/components/divider"
 import { BottomNav } from "@/components/bottom-nav"
 import { client } from "@/lib/sanity/client"
 import { Post } from "@/types/sanity"
+
+export const revalidate = 60 // Revalidate every minute
 
 async function getPostsByCategory(categorySlug: string, limit = 3) {
   return client.fetch<Post[]>(
@@ -64,28 +65,20 @@ export default async function Home() {
   ])
 
   return (
-    <div className="min-h-screen flex flex-col font-sans bg-background text-foreground pb-20 md:pb-0">
-      <Header />
-      <main className="flex-1">
-        <HeroSection post={latestPost} />
-        <OrganizationSection posts={organizationPosts} />
-        <Divider />
-        <CuraduriaSection posts={curaduriaPosts} />
-        <Divider />
-        <BiohackingSection posts={biohackingPosts} />
-        <Divider />
-        <HacksSection posts={hacksPosts} />
-        <Divider />
-        <FurnitureSection posts={furniturePosts} />
-        <Divider />
-        <DiySection posts={diyPosts} />
-        <NewsletterSection />
-      </main>
-      <footer className="py-8 text-center border-t border-border mt-auto bg-muted/20">
-        <div className="max-w-5xl mx-auto px-6">
-           <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} Optimizacion Espacios Pequeños. All rights reserved.</p>
-        </div>
-      </footer>
+    <div className="flex flex-col pb-20 md:pb-0">
+      <HeroSection post={latestPost} />
+      <OrganizationSection posts={organizationPosts} />
+      <Divider />
+      <CuraduriaSection posts={curaduriaPosts} />
+      <Divider />
+      <BiohackingSection posts={biohackingPosts} />
+      <Divider />
+      <HacksSection posts={hacksPosts} />
+      <Divider />
+      <FurnitureSection posts={furniturePosts} />
+      <Divider />
+      <DiySection posts={diyPosts} />
+      <NewsletterSection />
       <BottomNav />
     </div>
   )

@@ -44,7 +44,8 @@ async function getPost(slug: string) {
       mainImage,
       publishedAt,
       author->{name, image, bio},
-      categories[]->{title}
+      categories[]->{title},
+      slug
     }`,
     { slug }
   )

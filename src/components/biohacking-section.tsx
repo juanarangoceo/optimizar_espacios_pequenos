@@ -1,139 +1,120 @@
 "use client"
 
 import Image from "next/image"
-import { Sun, Wind, MonitorSmartphone, ArrowRight, BookOpen } from "lucide-react"
+import { Clock, ArrowRight } from "lucide-react"
 import { Post } from "@/types/sanity"
 import { urlFor } from "@/lib/sanity/client"
 import Link from "next/link"
-
-const defaultTopics = [
-  {
-    icon: Sun,
-    label: "Iluminacion Circadiana",
-    summary: "Configura tu luz para sincronizar tu reloj biologico y mejorar el sueno.",
-    readTime: "4 min",
-    slug: "#"
-  },
-  {
-    icon: Wind,
-    label: "Calidad del Aire",
-    summary: "Las 5 plantas que filtran toxinas y como colocarlas segun los m2.",
-    readTime: "3 min",
-    slug: "#"
-  },
-  {
-    icon: MonitorSmartphone,
-    label: "Ergonomia Remota",
-    summary: "Escritorios, sillas y rutinas de movimiento para jornadas de +8h en casa.",
-    readTime: "6 min",
-    slug: "#"
-  },
-]
+import { EmptyState } from "./empty-state"
 
 interface BiohackingSectionProps {
   posts?: Post[]
 }
 
 export function BiohackingSection({ posts = [] }: BiohackingSectionProps) {
-  // Logic: First post is the banner, rest are topics.
-  // If no posts, fallback to what exactly? We don't have a default banner in the component code, 
-  // it was hardcoded structure.
-  // We'll keep the banner structure but fill it with dynamic data if available.
-  
-  const hasPosts = posts.length > 0;
-  const bannerPost = hasPosts ? posts[0] : null;
-  const listPosts = hasPosts ? posts.slice(1) : defaultTopics; // If posts, slice 1..end. If no posts, use defaults for list.
-
   return (
-    <section className="py-12 px-6 max-w-5xl mx-auto bg-muted/20">
-      <div className="mb-2">
-        <span className="text-[10px] font-bold uppercase tracking-widest text-primary">
-          Bienestar y optimizacion humana
-        </span>
-        <h2 className="font-serif text-2xl md:text-3xl font-bold text-foreground leading-tight mt-1">
-          Biohacking del Hogar
-        </h2>
+    <section className="py-12 px-6 max-w-5xl mx-auto">
+      <div className="flex justify-between items-end mb-2">
+        <div>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-primary">
+            Optimizacion del entorno
+          </span>
+          <h2 className="font-serif text-2xl md:text-3xl font-bold text-foreground leading-tight mt-1">
+            Biohacking del Hogar
+          </h2>
+        </div>
+        <Link href="/espacios/biohacking-del-hogar" className="text-primary text-sm font-semibold hover:underline underline-offset-4 whitespace-nowrap flex items-center gap-1">
+          Ver todo
+          <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
       </div>
       <p className="text-sm text-muted-foreground mb-8 max-w-lg">
-        Tu espacio afecta tu rendimiento. Optimiza el aire, la luz y la
-        ergonomia para vivir y trabajar mejor.
+        Iluminacion circadiana, calidad del aire, acustica y temperatura: ciencia aplicada al micro-living.
       </p>
 
-      {/* Visual banner */}
-      <Link href={bannerPost ? `/espacios/biohacking-del-hogar/${bannerPost.slug.current}` : "/espacios/biohacking-del-hogar"} className="block relative rounded overflow-hidden mb-8 group cursor-pointer bg-muted">
-        <div className="grid grid-cols-2 h-56 md:h-72">
-          {bannerPost?.mainImage ? (
-             <div className="col-span-2 relative">
-                <Image
-                    src={urlFor(bannerPost.mainImage).width(800).url()}
-                    alt={bannerPost.title}
-                    fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-             </div>
-          ) : (
-            <>
-                <div className="relative border-r border-border/50 bg-secondary/50">
-                    <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-                        <span className="text-xs">Light Setup</span>
-                    </div>
-                </div>
-                <div className="relative bg-secondary/30">
-                    <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-                        <span className="text-xs">Air Quality</span>
-                    </div>
-                </div>
-            </>
-          )}
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-foreground/50 via-foreground/10 to-transparent pointer-events-none" />
-        <div className="absolute bottom-4 left-4 right-4 z-10">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-primary-foreground/80">
-            {bannerPost ? "Articulo Destacado" : "Guia completa"}
-          </span>
-          <h3 className="font-serif text-lg md:text-xl font-bold text-card mt-0.5">
-            {bannerPost ? bannerPost.title : "Tu casa como sistema operativo de bienestar"}
-          </h3>
-        </div>
-      </Link>
-
-      {/* Topic cards */}
-      <div className="flex flex-col gap-4">
-        {listPosts.map((item: any, index: number) => {
-          const isPost = 'slug' in item && 'publishedAt' in item;
-          const Icon = isPost ? BookOpen : item.icon;
-          const label = isPost ? item.title : item.label;
-          const summary = isPost ? item.description : item.summary;
-          const readTime = isPost ? new Date(item.publishedAt).toLocaleDateString() : item.readTime;
-          const link = isPost ? `/espacios/biohacking-del-hogar/${item.slug.current}` : item.slug || "#";
-
-          return (
+      {posts.length === 0 ? (
+        <EmptyState 
+          categoryName="Biohacking del Hogar" 
+          categorySlug="biohacking-del-hogar"
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Banner Post */}
+          {posts[0] && (
             <Link
-              key={isPost ? item._id : item.label}
-              href={link}
-              className="flex items-start gap-4 p-4 bg-card rounded border border-border hover:border-primary/30 transition-colors cursor-pointer group"
+              href={`/espacios/biohacking-del-hogar/${posts[0].slug.current}`}
+              className="md:col-span-2 relative aspect-[21/9] rounded overflow-hidden group cursor-pointer"
             >
-              <div className="shrink-0 w-10 h-10 rounded bg-primary/10 flex items-center justify-center">
-                <Icon className="h-5 w-5 text-primary" />
+              <div className="absolute inset-0 bg-muted">
+                {posts[0].mainImage ? (
+                  <Image
+                    src={urlFor(posts[0].mainImage).width(1200).url()}
+                    alt={posts[0].title}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    sizes="(max-width: 768px) 100vw, 1200px"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                    <span className="text-xs">No Image</span>
+                  </div>
+                )}
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <h4 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
-                    {label}
-                  </h4>
-                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                    {readTime}
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
-                  {summary}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                <span className="inline-block px-2 py-1 bg-primary text-primary-foreground rounded text-[10px] font-bold mb-2">
+                  Destacado
+                </span>
+                <h3 className="text-xl md:text-2xl font-bold mb-2 line-clamp-2">
+                  {posts[0].title}
+                </h3>
+                <p className="text-sm opacity-90 line-clamp-2">
+                  {posts[0].description}
                 </p>
               </div>
-              <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-primary transition-colors mt-3" />
             </Link>
-          )
-        })}
-      </div>
+          )}
+
+          {/* List Posts */}
+          <div className="md:col-span-2 space-y-4">
+            {posts.slice(1, 4).map((post) => (
+              <Link
+                key={post._id}
+                href={`/espacios/biohacking-del-hogar/${post.slug.current}`}
+                className="flex gap-4 group cursor-pointer"
+              >
+                <div className="relative w-24 h-24 shrink-0 rounded overflow-hidden bg-muted">
+                  {post.mainImage ? (
+                    <Image
+                      src={urlFor(post.mainImage).width(200).url()}
+                      alt={post.title}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      sizes="96px"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                      <span className="text-[10px]">No Image</span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors leading-tight mb-1 line-clamp-2">
+                    {post.title}
+                  </h4>
+                  <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                    {post.description}
+                  </p>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Clock className="h-3 w-3" />
+                    <span>{new Date(post.publishedAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   )
 }

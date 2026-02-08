@@ -1,122 +1,83 @@
 "use client"
 
-import { Lightbulb, Clock, Zap, ArrowRight, BookOpen } from "lucide-react"
+import Image from "next/image"
+import { Clock, ArrowRight } from "lucide-react"
 import { Post } from "@/types/sanity"
+import { urlFor } from "@/lib/sanity/client"
 import Link from "next/link"
-
-const defaultHacks = [
-  {
-    icon: Lightbulb,
-    number: "01",
-    title: "Espejos estrategicos",
-    description:
-      "Coloca un espejo frente a la ventana principal. Duplica la luz natural percibida y genera profundidad visual instantanea.",
-    difficulty: "Facil",
-    time: "10 min",
-  },
-  {
-    icon: Clock,
-    number: "02",
-    title: "La regla del tercio vertical",
-    description:
-      "Usa el tercio superior de cada pared: estanterias flotantes, ganchos y almacenaje que libera el suelo sin perforar tu presupuesto.",
-    difficulty: "Facil",
-    time: "30 min",
-  },
-  {
-    icon: Zap,
-    number: "03",
-    title: "Puertas como superficie util",
-    description:
-      "Organizadores de puerta para zapatos, especias o limpieza. Convierte cada puerta en 0.5m2 extra de almacenaje oculto.",
-    difficulty: "Medio",
-    time: "15 min",
-  },
-  {
-    icon: Lightbulb,
-    number: "04",
-    title: "Cortinas al techo",
-    description:
-      "Monta la barra de cortina 15cm por encima de la ventana y hasta el suelo. El efecto optico anade 20cm de altura percibida al espacio.",
-    difficulty: "Facil",
-    time: "20 min",
-  },
-]
+import { EmptyState } from "./empty-state"
 
 interface HacksSectionProps {
   posts?: Post[]
 }
 
 export function HacksSection({ posts = [] }: HacksSectionProps) {
-  const displayItems = posts.length > 0 ? posts : defaultHacks
-
   return (
     <section className="py-12 px-6 max-w-5xl mx-auto">
       <div className="flex justify-between items-end mb-2">
         <div>
           <span className="text-[10px] font-bold uppercase tracking-widest text-primary">
-            Rapidos y efectivos
+            Tips rapidos
           </span>
           <h2 className="font-serif text-2xl md:text-3xl font-bold text-foreground leading-tight mt-1">
             Hacks
           </h2>
         </div>
         <Link href="/espacios/hacks" className="text-primary text-sm font-semibold hover:underline underline-offset-4 whitespace-nowrap flex items-center gap-1">
-          Ver todos
+          Ver todo
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>
       <p className="text-sm text-muted-foreground mb-8 max-w-lg">
-        Trucos que puedes aplicar hoy mismo sin herramientas especiales.
+        Trucos instantaneos para ganar espacio sin reformas ni inversion.
       </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {displayItems.map((item: any, index: number) => {
-          const isPost = 'slug' in item;
-          const title = isPost ? item.title : item.title;
-          const description = isPost ? item.description : item.description;
-          const link = isPost ? `/espacios/hacks/${item.slug.current}` : "#";
-          const Icon = isPost ? BookOpen : item.icon;
-          const number = isPost ? `0${index + 1}` : item.number;
-          const time = isPost ? new Date(item.publishedAt).toLocaleDateString() : item.time;
-          const difficulty = isPost ? "Tip" : item.difficulty;
+      {posts.length === 0 ? (
+        <EmptyState 
+          categoryName="Hacks" 
+          categorySlug="hacks"
+        />
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {posts.slice(0, 4).map((post, index) => {
+            const image = post.mainImage ? urlFor(post.mainImage).width(400).url() : null
 
-          return (
-            <Link
-              key={isPost ? item._id : item.number}
-              href={link}
-              className="relative flex gap-4 p-5 bg-card rounded border border-border hover:border-primary/30 transition-all cursor-pointer group overflow-hidden"
-            >
-              {/* Large number watermark */}
-              <span className="absolute -top-2 -right-1 text-7xl font-serif font-bold text-foreground/[0.03] select-none leading-none">
-                {number}
-              </span>
-
-              <div className="shrink-0 w-10 h-10 rounded bg-primary/10 flex items-center justify-center">
-                <Icon className="h-5 w-5 text-primary" />
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors mb-1 line-clamp-1">
-                  {title}
-                </h4>
-                <p className="text-xs text-muted-foreground leading-relaxed mb-3 line-clamp-3">
-                  {description}
-                </p>
-                <div className="flex items-center gap-3">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded">
-                    {difficulty}
-                  </span>
-                  <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                    <Clock className="h-3 w-3" />
-                    {time}
-                  </span>
+            return (
+              <Link
+                key={post._id}
+                href={`/espacios/hacks/${post.slug.current}`}
+                className="group cursor-pointer"
+              >
+                <div className="relative aspect-square w-full rounded overflow-hidden bg-muted mb-3">
+                  {image ? (
+                    <Image
+                      src={image}
+                      alt={post.title}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      sizes="(max-width: 768px) 50vw, 25vw"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                      <span className="text-xs">No Image</span>
+                    </div>
+                  )}
+                  <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
+                    {index + 1}
+                  </div>
                 </div>
-              </div>
-            </Link>
-          )
-        })}
-      </div>
+                <h3 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors leading-tight line-clamp-2">
+                  {post.title}
+                </h3>
+                <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
+                  <Clock className="h-3 w-3" />
+                  <span>{new Date(post.publishedAt).toLocaleDateString()}</span>
+                </div>
+              </Link>
+            )
+          })}
+        </div>
+      )}
     </section>
   )
 }

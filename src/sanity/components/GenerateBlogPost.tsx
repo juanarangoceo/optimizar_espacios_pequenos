@@ -47,11 +47,23 @@ export function GenerateBlogPost(props: StringInputProps) {
       return
     }
 
+    // Validate that we have a category selected
+    if (!selectedCategoryId || categories.length === 0) {
+      toast.push({status: 'error', title: 'Esperando categorías...', description: 'Por favor espera un momento'})
+      return
+    }
+
     setIsLoading(true)
     
     // Find selected category title for the prompt
     const selectedCategoryObj = categories.find(c => c._id === selectedCategoryId)
     const categoryTitle = selectedCategoryObj ? selectedCategoryObj.title : 'General'
+
+    console.log('🎯 Generating with category:', {
+      selectedCategoryId,
+      categoryTitle,
+      categoriesAvailable: categories.length
+    })
 
     try {
       // Call our Next.js API
@@ -85,19 +97,23 @@ export function GenerateBlogPost(props: StringInputProps) {
             aiGenerator: 'v2-automated',
         }
 
-        // Add category reference if we have a valid ID
-        if (selectedCategoryId && selectedCategoryId !== 'general') {
+        // ALWAYS add category reference if we have a valid ID
+        // Remove the 'general' check - all categories should be saved
+        if (selectedCategoryId) {
             patchData.categories = [{
                 _type: 'reference',
                 _ref: selectedCategoryId,
-                _key: uuidv4() // Generate a random key for the array item
+                _key: uuidv4()
             }]
+            console.log('✅ Adding category to post:', selectedCategoryId, categoryTitle)
+        } else {
+            console.warn('⚠️ No category selected!')
         }
         
         transaction.patch(docId, p => p.set(patchData))
 
         await transaction.commit()
-        console.log('Updated document with category:', docId, categoryTitle)
+        console.log('✅ Document updated successfully:', docId, 'Category:', categoryTitle)
       }
 
       toast.push({
@@ -107,7 +123,7 @@ export function GenerateBlogPost(props: StringInputProps) {
       })
       
     } catch (err: any) {
-      console.error(err)
+      console.error('❌ Generation error:', err)
       toast.push({status: 'error', title: 'Error', description: err.message})
     } finally {
       setIsLoading(false)

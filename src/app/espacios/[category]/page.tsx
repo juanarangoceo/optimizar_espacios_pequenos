@@ -30,15 +30,16 @@ async function getCategory(slug: string) {
 
 async function getCategoryPosts(categorySlug: string) {
   // Fetch posts from Sanity that match this category
-  // For now, we'll fetch all posts and filter client-side or add category reference in Sanity
   return await client.fetch(
-    `*[_type == "post"] | order(publishedAt desc) {
+    `*[_type == "post" && count((categories[]->slug.current)[@ == $categorySlug]) > 0] | order(publishedAt desc) {
       title,
       slug,
       publishedAt,
       mainImage,
-      "excerpt": body[0].children[0].text
-    }`
+      "excerpt": body[0].children[0].text,
+      "categories": categories[]->title
+    }`,
+    { categorySlug }
   )
 }
 

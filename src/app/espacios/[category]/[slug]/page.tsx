@@ -1,6 +1,5 @@
-
 import { notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '@/lib/supabase/server'
 import { client } from '@/lib/sanity/client'
 import { ArticleHero } from '@/components/article-hero'
 import { ArticleContent } from '@/components/article-content'
@@ -18,7 +17,7 @@ interface Props {
 }
 
 async function getCategory(slug: string) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data, error } = await supabase
     .from('categories')
     .select('id, title')

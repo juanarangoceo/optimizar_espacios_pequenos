@@ -1,9 +1,10 @@
-
 "use client"
 
-import { Lightbulb, Clock, Zap, ArrowRight } from "lucide-react"
+import { Lightbulb, Clock, Zap, ArrowRight, BookOpen } from "lucide-react"
+import { Post } from "@/types/sanity"
+import Link from "next/link"
 
-const hacks = [
+const defaultHacks = [
   {
     icon: Lightbulb,
     number: "01",
@@ -42,7 +43,13 @@ const hacks = [
   },
 ]
 
-export function HacksSection() {
+interface HacksSectionProps {
+  posts?: Post[]
+}
+
+export function HacksSection({ posts = [] }: HacksSectionProps) {
+  const displayItems = posts.length > 0 ? posts : defaultHacks
+
   return (
     <section className="py-12 px-6 max-w-5xl mx-auto">
       <div className="flex justify-between items-end mb-2">
@@ -54,26 +61,35 @@ export function HacksSection() {
             Hacks
           </h2>
         </div>
-        <button className="text-primary text-sm font-semibold hover:underline underline-offset-4 whitespace-nowrap flex items-center gap-1">
+        <Link href="/espacios/hacks" className="text-primary text-sm font-semibold hover:underline underline-offset-4 whitespace-nowrap flex items-center gap-1">
           Ver todos
           <ArrowRight className="h-3.5 w-3.5" />
-        </button>
+        </Link>
       </div>
       <p className="text-sm text-muted-foreground mb-8 max-w-lg">
         Trucos que puedes aplicar hoy mismo sin herramientas especiales.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {hacks.map((hack) => {
-          const Icon = hack.icon
+        {displayItems.map((item: any, index: number) => {
+          const isPost = 'slug' in item;
+          const title = isPost ? item.title : item.title;
+          const description = isPost ? item.description : item.description;
+          const link = isPost ? `/espacios/hacks/${item.slug.current}` : "#";
+          const Icon = isPost ? BookOpen : item.icon;
+          const number = isPost ? `0${index + 1}` : item.number;
+          const time = isPost ? new Date(item.publishedAt).toLocaleDateString() : item.time;
+          const difficulty = isPost ? "Tip" : item.difficulty;
+
           return (
-            <div
-              key={hack.number}
+            <Link
+              key={isPost ? item._id : item.number}
+              href={link}
               className="relative flex gap-4 p-5 bg-card rounded border border-border hover:border-primary/30 transition-all cursor-pointer group overflow-hidden"
             >
               {/* Large number watermark */}
               <span className="absolute -top-2 -right-1 text-7xl font-serif font-bold text-foreground/[0.03] select-none leading-none">
-                {hack.number}
+                {number}
               </span>
 
               <div className="shrink-0 w-10 h-10 rounded bg-primary/10 flex items-center justify-center">
@@ -81,23 +97,23 @@ export function HacksSection() {
               </div>
 
               <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors mb-1">
-                  {hack.title}
+                <h4 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors mb-1 line-clamp-1">
+                  {title}
                 </h4>
-                <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-                  {hack.description}
+                <p className="text-xs text-muted-foreground leading-relaxed mb-3 line-clamp-3">
+                  {description}
                 </p>
                 <div className="flex items-center gap-3">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded">
-                    {hack.difficulty}
+                    {difficulty}
                   </span>
                   <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
                     <Clock className="h-3 w-3" />
-                    {hack.time}
+                    {time}
                   </span>
                 </div>
               </div>
-            </div>
+            </Link>
           )
         })}
       </div>

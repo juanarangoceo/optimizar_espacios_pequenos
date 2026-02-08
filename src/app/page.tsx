@@ -1,4 +1,3 @@
-
 import { Header } from "@/components/header"
 import { HeroSection } from "@/components/hero-section"
 import { OrganizationSection } from "@/components/organization-section"
@@ -10,24 +9,58 @@ import { DiySection } from "@/components/diy-section"
 import { NewsletterSection } from "@/components/newsletter-section"
 import { Divider } from "@/components/divider"
 import { BottomNav } from "@/components/bottom-nav"
+import { client } from "@/lib/sanity/client"
+import { Post } from "@/types/sanity"
 
-export default function Home() {
+async function getPostsByCategory(categorySlug: string, limit = 3) {
+  return client.fetch<Post[]>(
+    `*[_type == "post" && references(*[_type == "category" && slug.current == $categorySlug]._id)] | order(publishedAt desc)[0...$limit] {
+      _id,
+      title,
+      slug,
+      description,
+      mainImage,
+      publishedAt,
+      "author": author->{name, image}
+    }`,
+    { categorySlug, limit }
+  )
+}
+
+export default async function Home() {
+  // Parallel data fetching
+  const [
+    organizationPosts,
+    curaduriaPosts,
+    biohackingPosts,
+    hacksPosts,
+    furniturePosts,
+    diyPosts
+  ] = await Promise.all([
+    getPostsByCategory('sistemas-de-organizacion'),
+    getPostsByCategory('curaduria-de-espacios'),
+    getPostsByCategory('biohacking-del-hogar'),
+    getPostsByCategory('hacks', 4), // Hacks section layout supports 4
+    getPostsByCategory('mobiliario-inteligente'),
+    getPostsByCategory('proyectos-diy', 1) // DIY section focuses on one featured project
+  ])
+
   return (
     <div className="min-h-screen flex flex-col font-sans bg-background text-foreground pb-20 md:pb-0">
       <Header />
       <main className="flex-1">
         <HeroSection />
-        <OrganizationSection />
+        <OrganizationSection posts={organizationPosts} />
         <Divider />
-        <CuraduriaSection />
+        <CuraduriaSection posts={curaduriaPosts} />
         <Divider />
-        <BiohackingSection />
+        <BiohackingSection posts={biohackingPosts} />
         <Divider />
-        <HacksSection />
+        <HacksSection posts={hacksPosts} />
         <Divider />
-        <FurnitureSection />
+        <FurnitureSection posts={furniturePosts} />
         <Divider />
-        <DiySection />
+        <DiySection posts={diyPosts} />
         <NewsletterSection />
       </main>
       <footer className="py-8 text-center border-t border-border mt-auto bg-muted/20">

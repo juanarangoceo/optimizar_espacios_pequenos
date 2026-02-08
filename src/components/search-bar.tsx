@@ -18,7 +18,7 @@ export function SearchBar() {
     }
     
     startTransition(() => {
-      router.replace(`/blog?${params.toString()}`)
+      router.replace(`/buscar?${params.toString()}`)
     })
   }
 

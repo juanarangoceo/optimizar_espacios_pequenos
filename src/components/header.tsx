@@ -76,17 +76,8 @@ export function Header() {
 
             <div className="h-px bg-border my-3" />
 
-            {/* Additional Links Placeholder */}
             <Link
-              href="/blog"
-              className="flex items-center gap-3 px-3 py-3 rounded text-foreground hover:bg-primary/5 hover:text-primary transition-colors font-medium"
-              onClick={() => setMenuOpen(false)}
-            >
-              <BookOpenText className="h-5 w-5" />
-              Blog
-            </Link>
-            <Link
-              href="/search"
+              href="/buscar"
               className="flex items-center gap-3 px-3 py-3 rounded text-foreground hover:bg-primary/5 hover:text-primary transition-colors font-medium"
               onClick={() => setMenuOpen(false)}
             >

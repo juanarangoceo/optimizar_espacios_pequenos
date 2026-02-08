@@ -60,20 +60,30 @@ export function GenerateBlogPost(props: StringInputProps) {
       
       const {title, slug, body, publishedAt} = data
 
-      // Check if document exists (has a valid _id that's not a draft placeholder)
-      if (docId && !docId.startsWith('drafts.')) {
-        // Document exists, update it
-        await client
-          .patch(docId)
-          .set({
+
+
+      // Improved Logic: Use a transaction to ensure validity
+      // This handles both new drafts (where ID might not exist on server yet)
+      // and existing documents.
+      if (docId) {
+        const transaction = client.transaction()
+        
+        // Ensure the document exists before patching
+        // This solves the "Mutation failed: Document not found" error
+        transaction.createIfNotExists({_type: 'post', _id: docId})
+        
+        transaction.patch(docId, p => p.set({
             title,
             body,
             slug: {current: slug},
             publishedAt: publishedAt || new Date().toISOString(),
-          })
-          .commit()
+            aiGenerator: 'v2-automated',
+        }))
+
+        await transaction.commit()
+        console.log('Updated document:', docId)
       } else {
-        // Document doesn't exist yet, create it
+        // Fallback if no docId is found (unlikely in Studio)
         const newDoc = await client.create({
           _type: 'post',
           title,
@@ -82,9 +92,7 @@ export function GenerateBlogPost(props: StringInputProps) {
           publishedAt: publishedAt || new Date().toISOString(),
           aiGenerator: 'v2-automated',
         })
-        
-        // Optionally, you could redirect to the new document
-        console.log('Created new document:', newDoc._id)
+        console.log('Created new document (fallback):', newDoc._id)
       }
 
       toast.push({

@@ -26,15 +26,29 @@ export interface Author {
 
 export interface Post {
   _id: string
-  _createdAt: string
   title: string
   slug: {
     current: string
   }
-  description?: string
-  mainImage?: SanityImage
-  author?: Author
-  categories?: Category[]
-  body?: PortableTextBlock[]
+  description: string
+  mainImage?: {
+    asset: {
+      _ref: string
+      _type: 'reference'
+    }
+  }
   publishedAt: string
+  author?: {
+    name: string
+    image?: {
+      asset: {
+        _ref: string
+        _type: 'reference'
+      }
+    }
+  }
+  category?: {
+    title: string
+    slug: string
+  }
 }

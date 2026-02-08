@@ -21,15 +21,32 @@ async function getPostsByCategory(categorySlug: string, limit = 3) {
       description,
       mainImage,
       publishedAt,
-      "author": author->{name, image}
+      "author": author->{name, image},
+      "category": categories[0]->{title, "slug": slug.current}
     }`,
     { categorySlug, limit }
+  )
+}
+
+async function getLatestPost() {
+  return client.fetch<Post | null>(
+    `*[_type == "post"] | order(publishedAt desc)[0] {
+      _id,
+      title,
+      slug,
+      description,
+      mainImage,
+      publishedAt,
+      "author": author->{name, image},
+      "category": categories[0]->{title, "slug": slug.current}
+    }`
   )
 }
 
 export default async function Home() {
   // Parallel data fetching
   const [
+    latestPost,
     organizationPosts,
     curaduriaPosts,
     biohackingPosts,
@@ -37,6 +54,7 @@ export default async function Home() {
     furniturePosts,
     diyPosts
   ] = await Promise.all([
+    getLatestPost(),
     getPostsByCategory('sistemas-de-organizacion'),
     getPostsByCategory('curaduria-de-espacios'),
     getPostsByCategory('biohacking-del-hogar'),
@@ -49,7 +67,7 @@ export default async function Home() {
     <div className="min-h-screen flex flex-col font-sans bg-background text-foreground pb-20 md:pb-0">
       <Header />
       <main className="flex-1">
-        <HeroSection />
+        <HeroSection post={latestPost} />
         <OrganizationSection posts={organizationPosts} />
         <Divider />
         <CuraduriaSection posts={curaduriaPosts} />

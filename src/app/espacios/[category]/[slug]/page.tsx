@@ -6,6 +6,8 @@ import { ArticleContent } from '@/components/article-content'
 import { ArticleNewsletter } from '@/components/article-newsletter'
 import { ProductCarousel } from '@/components/product-carousel'
 import { Breadcrumb } from '@/components/breadcrumb'
+import { JsonLd } from '@/components/json-ld'
+import { urlFor } from '@/lib/sanity/client'
 
 export const revalidate = 3600 // ISR: Revalidate every hour
 
@@ -28,10 +30,16 @@ async function getCategory(slug: string) {
   return data
 }
 
+
+import { Metadata } from 'next'
+
+// ... existing imports
+
 async function getPost(slug: string) {
   return await client.fetch(
     `*[_type == "post" && slug.current == $slug][0]{
       title,
+      description,
       body,
       mainImage,
       publishedAt,
@@ -40,6 +48,50 @@ async function getPost(slug: string) {
     }`,
     { slug }
   )
+}
+
+export async function generateMetadata(
+  { params }: Props
+): Promise<Metadata> {
+  const { slug } = await params
+  const post = await getPost(slug)
+
+  if (!post) {
+    return {
+      title: 'Artículo no encontrado',
+      description: 'El artículo que buscas no existe.'
+    }
+  }
+
+  const ogImage = post.mainImage 
+    ? urlFor(post.mainImage).width(1200).height(630).url()
+    : '/images/og-default.jpg'
+
+  return {
+    title: post.title,
+    description: post.description || post.excerpt || `Lee sobre ${post.title}`,
+    openGraph: {
+      title: post.title,
+      description: post.description || post.excerpt,
+      type: 'article',
+      publishedTime: post.publishedAt,
+      authors: [post.author?.name || 'Optimizacion Espacios'],
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: post.title,
+        }
+      ]
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.description || post.excerpt,
+      images: [ogImage],
+    }
+  }
 }
 
 export default async function BlogPostPage({ params }: Props) {
@@ -60,6 +112,7 @@ export default async function BlogPostPage({ params }: Props) {
   // 3. Render
   return (
     <article className="min-h-screen bg-background text-foreground pb-20">
+      <JsonLd post={post} categorySlug={category} />
       {/* Hero with Main Image */}
       <ArticleHero image={post.mainImage} title={post.title} />
 

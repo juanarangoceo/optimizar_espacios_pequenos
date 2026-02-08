@@ -26,6 +26,8 @@ export interface Author {
 
 export interface Post {
   _id: string
+  _createdAt?: string
+  _updatedAt?: string
   title: string
   slug: {
     current: string

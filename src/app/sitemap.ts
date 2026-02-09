@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 import { client } from '@/lib/sanity/client'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.optimizarespaciospequenos.com'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.xn--optimizarespaciospequeos-mlc.com'
 
   // Fetch all posts
   const posts = await client.fetch(`
